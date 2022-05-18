@@ -1,21 +1,21 @@
 /*
-    convolution Çì´õ ÆÄÀÏÀÔ´Ï´Ù. Çì´õÆÄÀÏÀ» ¼±¾ğÇÏ°í »ç¿ëÇØ ÁÖ¼¼¿ä. //#include "convolution.h"
-  
+    convolution í—¤ë” íŒŒì¼ì…ë‹ˆë‹¤. í—¤ë”íŒŒì¼ì„ ì„ ì–¸í•˜ê³  ì‚¬ìš©í•´ ì£¼ì„¸ìš”. //#include "convolution.h"
+
                 ---row_size---
 
         []      []      []      ...     []
    |
-   |    []      []      []      ...     []      
-   |         
+   |    []      []      []      ...     []
+   |
   col_  .       .                       .
   size  .       .                       .
    |    .       .                       .
    |
    |    []      []      []      ...     []
-        
+
         []      []      []      ...     []
 
-    filter´Â row_size¿Í col_size°¡ °°´Ù°í »ı°¢ÇÏ°í ¸¸µé¾ú½À´Ï´Ù. row_size¸¦ ³Ö¾îÁÖ¼¼¿ä.
+    filterëŠ” row_sizeì™€ col_sizeê°€ ê°™ë‹¤ê³  ìƒê°í•˜ê³  ë§Œë“¤ì—ˆìŠµë‹ˆë‹¤. row_sizeë¥¼ ë„£ì–´ì£¼ì„¸ìš”.
 
 */
 
@@ -25,33 +25,33 @@
 
 
 
-typedef unsigned char TYPE;// ¿©±â¼­ data typeÀ» ¼³Á¤ÇÏ¼¼¿ä.
-typedef int filter_TYPE;
+typedef int TYPE;// ì—¬ê¸°ì„œ data typeì„ ì„¤ì •í•˜ì„¸ìš”.
+typedef float filter_TYPE;
 
 
-void conv(TYPE* output_data, TYPE* input_data, float* filter, int row_size, int col_size, int filter_row_size);
+void conv(TYPE* output_data, TYPE* input_data, filter_TYPE* filter, int row_size, int col_size, int filter_row_size);
 void print_matrix(TYPE* input_data, int row_size, int col_size);
 void padding_matrix(TYPE* output_data, TYPE* input_data, TYPE padding_number, int row_size, int col_size);
 
 
 
 
-void conv(TYPE *output_data, TYPE *input_data, filter_TYPE *filter, int row_size, int col_size, int filter_row_size) {
+void conv(TYPE* output_data, TYPE* input_data, filter_TYPE* filter, int row_size, int col_size, int filter_row_size) {
 
-    // output_data´Â conv¿¬»êÀ» ½ÃÇàÇÑ Ãâ·Â°ªÀÔ´Ï´Ù. Æ÷ÀÎÅÍ¸¦ ÁöÁ¤ÇØÁÖ¼¼¿ä.
-    // input_data¿¡ Ã³¸®¸¦ ÇÏ°í½ÍÀº data¸¦ ÀÔ·ÂÇÏ¼¼¿ä. 
-    // µ¥ÀÌÅÍÀÇ size´Â ÀÌ¾î¼­ ¿À´Â  row_size¿Í col_size¿¡ ³Ö¾îÁÖ¼¼¿ä.
-	// filterµµ ¸¶Âù°¡Áö·Î ³Ö¾îÁÖ¼¼¿ä.
-   
+    // output_dataëŠ” convì—°ì‚°ì„ ì‹œí–‰í•œ ì¶œë ¥ê°’ì…ë‹ˆë‹¤. í¬ì¸í„°ë¥¼ ì§€ì •í•´ì£¼ì„¸ìš”.
+    // input_dataì— ì²˜ë¦¬ë¥¼ í•˜ê³ ì‹¶ì€ dataë¥¼ ì…ë ¥í•˜ì„¸ìš”. 
+    // ë°ì´í„°ì˜ sizeëŠ” ì´ì–´ì„œ ì˜¤ëŠ”  row_sizeì™€ col_sizeì— ë„£ì–´ì£¼ì„¸ìš”.
+    // filterë„ ë§ˆì°¬ê°€ì§€ë¡œ ë„£ì–´ì£¼ì„¸ìš”.
+
     int filter_size = filter_row_size * filter_row_size;
-	int r, c, fr, fc;
-	int out = 0;
-	TYPE temp, mul;
+    int r, c, fr, fc;
+    int out = 0;
+    TYPE temp, mul;
 
 
-	for (int i = 0; i < (row_size - filter_row_size + 1) * (col_size - filter_row_size + 1); i++) {
-		output_data[i] = (TYPE)0;
-	}
+    for (int i = 0; i < (row_size - filter_row_size + 1) * (col_size - filter_row_size + 1); i++) {
+        output_data[i] = (TYPE)0;
+    }
 
     for (c = 0; c < col_size - filter_row_size + 1; c++) { //conv_filter_trans_row
         for (r = 0; r < row_size - filter_row_size + 1; r++) { //conv_filter_trans_col
@@ -64,23 +64,23 @@ void conv(TYPE *output_data, TYPE *input_data, filter_TYPE *filter, int row_size
                 }
             }
 
-            output_data[out++] = temp;
+            output_data[out++] = (int)temp;
         }
     }
 
-	return;
+    return;
 }
 
-void print_matrix(TYPE *input_data, int row_size, int col_size) {
+void print_matrix(TYPE* input_data, int row_size, int col_size) {
 
-    // matrix¸¦ Ãâ·ÂÇÏ¿© º¸±âÀ§ÇÑ ÇÔ¼öÀÔ´Ï´Ù.
-    // data¿Í size¸¦ ³Ö¾îÁÖ¼¼¿ä.
-    // ¾Æ·¡ÀÇ Ãâ·Â ÀÚ·áÇüÀ» ¿øÇÏ´Â °ÍÀ¸·Î ¹Ù²Ù¾î ÁÖ¼¼¿ä.
+    // matrixë¥¼ ì¶œë ¥í•˜ì—¬ ë³´ê¸°ìœ„í•œ í•¨ìˆ˜ì…ë‹ˆë‹¤.
+    // dataì™€ sizeë¥¼ ë„£ì–´ì£¼ì„¸ìš”.
+    // ì•„ë˜ì˜ ì¶œë ¥ ìë£Œí˜•ì„ ì›í•˜ëŠ” ê²ƒìœ¼ë¡œ ë°”ê¾¸ì–´ ì£¼ì„¸ìš”.
 
     int out = 0;
     for (int i = 0; i < col_size; i++) {
         for (int j = 0; j < row_size; j++) {
-            printf("%d\t", input_data[out++]);//¿©±â¼­ ÀÚ·áÇüÀ» ¹Ù²Ù¸é µË´Ï´Ù. TYPE¿Í °°Àº ÀÚ·áÇü Å¸ÀÔÀ¸·Î ¹Ù²Ù¸é µË´Ï´Ù.
+            printf("%d\t", input_data[out++]);//ì—¬ê¸°ì„œ ìë£Œí˜•ì„ ë°”ê¾¸ë©´ ë©ë‹ˆë‹¤. TYPEì™€ ê°™ì€ ìë£Œí˜• íƒ€ì…ìœ¼ë¡œ ë°”ê¾¸ë©´ ë©ë‹ˆë‹¤.
         }
         printf("\n");
     }
@@ -88,16 +88,16 @@ void print_matrix(TYPE *input_data, int row_size, int col_size) {
     return;
 }
 
-void padding_matrix(TYPE *output_data, TYPE *input_data, TYPE padding_number, int row_size, int col_size) {
-    
-    // paddingÀ» ÇÏ´Â ÇÔ¼öÀÔ´Ï´Ù.
-    // padding´Â conv µîÀ¸·Î ÀÎÇÏ¿© ÁÙ¾îµå´Â row,col_size¸¦ º¸»óÇØÁÖ±â À§ÇÑ ¹æ¹ıÀÔ´Ï´Ù.
-    // ±âÁ¸ ¸ÅÆ®¸¯½º¿¡ ¿øÇÏ´Â ¼ıÀÚ¸¦ °¨½Î´Â ½ÄÀ¸·Î row,col_size¸¦ Å°¿öÁİ´Ï´Ù.
-    // row,col_size¸¦ °¢°¢ 1½Ä Áõ°¡½ÃÅ°±â À§ÇÑ ÇÔ¼öÀÔ´Ï´Ù.
-    // in,outdata´Â Æ÷ÀÎÅÍ¸¦ ³Ö¾îÁÖ¼¼¿ä.
-    // padding_number´Â padding ÀÚ¸®¿¡ ³ÖÀ» °ªÀÔ´Ï´Ù.
-    // row,col_size´Â input_data°¡ ±âÁØÀÔ´Ï´Ù.
-    
+void padding_matrix(TYPE* output_data, TYPE* input_data, TYPE padding_number, int row_size, int col_size) {
+
+    // paddingì„ í•˜ëŠ” í•¨ìˆ˜ì…ë‹ˆë‹¤.
+    // paddingëŠ” conv ë“±ìœ¼ë¡œ ì¸í•˜ì—¬ ì¤„ì–´ë“œëŠ” row,col_sizeë¥¼ ë³´ìƒí•´ì£¼ê¸° ìœ„í•œ ë°©ë²•ì…ë‹ˆë‹¤.
+    // ê¸°ì¡´ ë§¤íŠ¸ë¦­ìŠ¤ì— ì›í•˜ëŠ” ìˆ«ìë¥¼ ê°ì‹¸ëŠ” ì‹ìœ¼ë¡œ row,col_sizeë¥¼ í‚¤ì›Œì¤ë‹ˆë‹¤.
+    // row,col_sizeë¥¼ ê°ê° 1ì‹ ì¦ê°€ì‹œí‚¤ê¸° ìœ„í•œ í•¨ìˆ˜ì…ë‹ˆë‹¤.
+    // in,outdataëŠ” í¬ì¸í„°ë¥¼ ë„£ì–´ì£¼ì„¸ìš”.
+    // padding_numberëŠ” padding ìë¦¬ì— ë„£ì„ ê°’ì…ë‹ˆë‹¤.
+    // row,col_sizeëŠ” input_dataê°€ ê¸°ì¤€ì…ë‹ˆë‹¤.
+
     for (int i = 0; i < (row_size + 2) * (col_size + 2); i++) {
         output_data[i] = (TYPE)padding_number;
     }
@@ -105,7 +105,7 @@ void padding_matrix(TYPE *output_data, TYPE *input_data, TYPE padding_number, in
     for (int c = 0; c < col_size; c++) { //conv_filter_trans_row
         for (int r = 0; r < row_size; r++) { //conv_filter_trans_col
             output_data[(r + 1) + (row_size + 2) * (c + 1)] = (TYPE)input_data[r + row_size * c];
-           
+
         }
 
     }
