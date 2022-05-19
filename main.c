@@ -3,90 +3,83 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "convolution.h"
 #include "image.h"
 
 
+
 /*
 typedef struct {
-    char M, N;//ë§¤ì§ë„˜ë²„
-    int row_size;//ë„“ì´
-    int col_size;//ë†’ì´
+    char M, N;//¸ÅÁ÷³Ñ¹ö
+    int row_size;//³ÐÀÌ
+    int col_size;//³ôÀÌ
     int scale;
-    unsigned char* pixels;//í”½ì…€ ë°ì´í„°
-}image_p5;//p5 pgmíŒŒì¼ì´ë©´ ì´ê±° ì“°ë©´ ë©ë‹ˆë‹¤.
+    unsigned char* pixels;//ÇÈ¼¿ µ¥ÀÌÅÍ
+}image_p5;//p5 pgmÆÄÀÏÀÌ¸é ÀÌ°Å ¾²¸é µË´Ï´Ù.
 
 typedef struct {
-    char M, N;//ë§¤ì§ë„˜ë²„
-    int row_size;//ë„“ì´
-    int col_size;//ë†’ì´
+    char M, N;//¸ÅÁ÷³Ñ¹ö
+    int row_size;//³ÐÀÌ
+    int col_size;//³ôÀÌ
     int scale;
-    int* pixels;//í”½ì…€ ë°ì´í„°
-}image_p2; //p2 pgmíŒŒì¼ì€ ì´ê±° ì“°ë©´ ë©ë‹ˆë‹¤.
+    int* pixels;//ÇÈ¼¿ µ¥ÀÌÅÍ
+}image_p2; //p2 pgmÆÄÀÏÀº ÀÌ°Å ¾²¸é µË´Ï´Ù.
 */
 
 /*
-    ì•„ëž˜ì˜ ë¹ˆì¹¸ì— ë§Œë“œì‹  í•¨ìˆ˜ë¥¼ ë„£ì–´ì£¼ì„¸ìš”. ê° ë‹¨ê³„ë§ˆë‹¤ ì²˜ë¦¬ëœ ì´ë¯¸ì§€ë¥¼ ì¶œë ¥í•  ê²ƒìž…ë‹ˆë‹¤. í•¨ìˆ˜ì„ ì–¸ í•˜ì‹¤ ë•Œ
-    ê°€ëŠ¥í•˜ë©´ void function_name(image_p2* output_data, image_p2* input_data, ê·¸ ì™¸ì˜ í•„ìš”í•œ ë³€ìˆ˜ë“¤...){}
-    ì‹ìœ¼ë¡œ ì„ ì–¸í•´ì£¼ì„¸ìš”. ë³´ê¸° ì‰½ê³  ì¼ê´€ì„±ìžˆê²Œ ë§Œë“¤ë ¤ê³  í•©ë‹ˆë‹¤. ë§Œë“œì‹  í•¨ìˆ˜ëŠ” í—¤ë”íŒŒì¼ì— ë„£ì–´ì„œ ì°¸ì¡°í• 
-    ìƒê°ìž…ë‹ˆë‹¤. ìœ„ì˜#include "convolution.h", #include "image.h"ì™€ ê°™ì´ í—¤ë”íŒŒì¼ë¡œ ë§Œë“¤ì–´ì„œ ì•ˆì— í•¨ìˆ˜ë¥¼
-    ë„£ì–´ì£¼ì„¸ìš”.
+    ¾Æ·¡ÀÇ ºóÄ­¿¡ ¸¸µå½Å ÇÔ¼ö¸¦ ³Ö¾îÁÖ¼¼¿ä. °¢ ´Ü°è¸¶´Ù Ã³¸®µÈ ÀÌ¹ÌÁö¸¦ Ãâ·ÂÇÒ °ÍÀÔ´Ï´Ù. ÇÔ¼ö¼±¾ð ÇÏ½Ç ¶§
+    °¡´ÉÇÏ¸é void function_name(image_p2* output_data, image_p2* input_data, ±× ¿ÜÀÇ ÇÊ¿äÇÑ º¯¼öµé...){}
+    ½ÄÀ¸·Î ¼±¾ðÇØÁÖ¼¼¿ä. º¸±â ½±°í ÀÏ°ü¼ºÀÖ°Ô ¸¸µé·Á°í ÇÕ´Ï´Ù. ¸¸µå½Å ÇÔ¼ö´Â Çì´õÆÄÀÏ¿¡ ³Ö¾î¼­ ÂüÁ¶ÇÒ
+    »ý°¢ÀÔ´Ï´Ù. À§ÀÇ#include "convolution.h", #include "image.h"¿Í °°ÀÌ Çì´õÆÄÀÏ·Î ¸¸µé¾î¼­ ¾È¿¡ ÇÔ¼ö¸¦
+    ³Ö¾îÁÖ¼¼¿ä.
 
-    ê·¸ë¦¬ê³  convolution.hì˜ í•„í„° ìžë£Œí˜•ì€ floatë¡œ, in/out dataì˜ ìžë£”í˜•ì€ intë¡œ ê³ ì •í•˜ì—¬ì„œ ì‚¬ìš©í• 
-    ìƒê°ìž…ë‹ˆë‹¤. í˜¹ì‹œ ë°”ê¾¸ì–´ì„œ í•¨ìˆ˜ë¥¼ ë§Œë“¤ì—ˆë‹¤ë©´ ì´ë¦„ì„ ë°”ê¾¸ì–´ í—¤ë”íŒŒì¼ì„ ì„ ì–¸í•˜ì—¬ ì°¸ì¡°í•´ì£¼ì„¸ìš”.
-    ë‚´ë¶€ì˜ í•¨ìˆ˜ ì´ë¦„ë“¤ë„ ë°”ê¾¸ì–´ì•¼ í•©ë‹ˆë‹¤.
+    ±×¸®°í convolution.hÀÇ ÇÊÅÍ ÀÚ·áÇüÀº float·Î, in/out dataÀÇ ÀÚ·ãÇüÀº int·Î °íÁ¤ÇÏ¿©¼­ »ç¿ëÇÒ
+    »ý°¢ÀÔ´Ï´Ù. È¤½Ã ¹Ù²Ù¾î¼­ ÇÔ¼ö¸¦ ¸¸µé¾ú´Ù¸é ÀÌ¸§À» ¹Ù²Ù¾î Çì´õÆÄÀÏÀ» ¼±¾ðÇÏ¿© ÂüÁ¶ÇØÁÖ¼¼¿ä.
+    ³»ºÎÀÇ ÇÔ¼ö ÀÌ¸§µéµµ ¹Ù²Ù¾î¾ß ÇÕ´Ï´Ù.
 */
 
 int main() {
-    int f_size;
-    float sig;
-    int HT, LT;
     image_p5* img = read_image_pgm_p5("ttt.pgm");
-    image_p2* tmp0 = pconvert_p5_to_p2(img);    
-    
-    
-    //í‰ê· ê°’
+    image_p2* tmp0 = pconvert_p5_to_p2(img);
+
+
+    //Æò±Õ°ª
     image_p2* tmp1 = image_reset(img->M, img->N, img->scale, img->row_size, img->col_size);
     average_filter(tmp1, tmp0, 3);
     image_write("result1.pgm", tmp1);
-    
 
-    //ê°€ìš°ì‹œì•ˆ
-    image_p2* tmp2 = image_reset(img->M, img->N, img->scale, img->row_size, img->col_size);//í•¨ìˆ˜ì— ë„£ì„ ì¶œë ¥ìž…ë‹ˆë‹¤.
+
+    //°¡¿ì½Ã¾È
+    image_p2* tmp2 = image_reset(img->M, img->N, img->scale, img->row_size, img->col_size);//ÇÔ¼ö¿¡ ³ÖÀ» Ãâ·ÂÀÔ´Ï´Ù.
     Gaussian_filter(tmp2, tmp0, 0.8, 3);
     image_write("result2.pgm", tmp2);
-    
 
 
-    //ì´ë¯¸ì§€ ê·¸ë¼ì´ì–¸íŠ¸
-    image_p2* tmp3 = image_reset(tmp2->M, tmp2->N, tmp2->scale, tmp2->row_size, tmp2->col_size);//í•¨ìˆ˜ì— ë„£ì„ ì¶œë ¥ìž…ë‹ˆë‹¤.
-    image_p2* tmp4 = image_reset(tmp2->M, tmp2->N, tmp2->scale, tmp2->row_size, tmp2->col_size);//í•¨ìˆ˜ì— ë„£ì„ ì¶œë ¥ìž…ë‹ˆë‹¤.
+
+    //ÀÌ¹ÌÁö ±×¶óÀÌ¾ðÆ®
+    image_p2* tmp3 = image_reset(img->M, img->N, img->scale, img->row_size, img->col_size);//ÇÔ¼ö¿¡ ³ÖÀ» Ãâ·ÂÀÔ´Ï´Ù.
+    image_p2* tmp4 = image_reset(img->M, img->N, img->scale, img->row_size, img->col_size);//ÇÔ¼ö¿¡ ³ÖÀ» Ãâ·ÂÀÔ´Ï´Ù.
     gradient(tmp3, tmp4, tmp2, 2);
     image_write("result3.pgm", tmp3);
     image_write("result4.pgm", tmp4);
 
 
-    //ë¹„ìµœëŒ€ ì–µì œ
-    image_p2* tmp5 = image_reset(tmp3->M, tmp3->N, tmp3->scale, tmp3->row_size, tmp3->col_size);//í•¨ìˆ˜ì— ë„£ì„ ì¶œë ¥ìž…ë‹ˆë‹¤.
-    image_p2* tmp6 = image_reset(tmp4->M, tmp4->N, tmp4->scale, tmp4->row_size, tmp4->col_size);//í•¨ìˆ˜ì— ë„£ì„ ì¶œë ¥ìž…ë‹ˆë‹¤.
-    NonMax(tmp5, tmp3, tmp4,1);
+    //ºñÃÖ´ë ¾ïÁ¦
+    image_p2* tmp5 = image_reset(img->M, img->N, img->scale, img->row_size, img->col_size);//ÇÔ¼ö¿¡ ³ÖÀ» Ãâ·ÂÀÔ´Ï´Ù.
+    NonMax(tmp5, tmp3, tmp4, 1);
     image_write("result5.pgm", tmp5);
-    //image_write("result6.pgm", tmp6);
-   
 
 
-    //ì´ë ¥ í˜„ìƒ ìž„ê³„í™”
-    image_p2* tmp7 = image_reset(tmp5->M, tmp5->N, tmp5->scale, img->row_size, img->col_size);//í•¨ìˆ˜ì— ë„£ì„ ì¶œë ¥ìž…ë‹ˆë‹¤.
-    DoubleT(tmp7, tmp5, 200, 50);
-    image_write("result7.pgm", tmp7);
+
+    //ÀÌ·Â Çö»ó ÀÓ°èÈ­
+    image_p2* tmp6 = image_reset(img->M, img->N, img->scale, img->row_size, img->col_size);//ÇÔ¼ö¿¡ ³ÖÀ» Ãâ·ÂÀÔ´Ï´Ù.
+    DoubleT(tmp6, tmp5, 200, 50);
+    image_write("result6.pgm", tmp6);
 
 
     //Hysterisis
-    image_p2* tmp8 = image_reset(tmp7->M, tmp7->N, tmp7->scale, tmp7->row_size, tmp7->col_size);//í•¨ìˆ˜ì— ë„£ì„ ì¶œë ¥ìž…ë‹ˆë‹¤.
-    image_p2* tmp9 = image_reset(tmp4->M, tmp4->N, tmp4->scale, tmp4->row_size, tmp4->col_size);//í•¨ìˆ˜ì— ë„£ì„ ì¶œë ¥ìž…ë‹ˆë‹¤.
-    //Hysterisis(tmp8,tmp9,tmp7,tmp4);
-    image_write("result8.pgm", tmp8);
-    image_write("result9.pgm", tmp9);  
+    image_p2* tmp7 = image_reset(img->M, img->N, img->scale, img->row_size, img->col_size);//ÇÔ¼ö¿¡ ³ÖÀ» Ãâ·ÂÀÔ´Ï´Ù.
+    Hysterisis(tmp7, tmp6, tmp4, 200, 50);
+    image_write("result7.pgm", tmp7);
 
 
 
@@ -98,9 +91,7 @@ int main() {
     close_image_p2(tmp5);
     close_image_p2(tmp6);
     close_image_p2(tmp7);
-    close_image_p2(tmp8);
-    close_image_p2(tmp9);
-    
+
 
     printf("\n\n---finish---\n\n");
     return 0;

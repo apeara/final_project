@@ -3,155 +3,156 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
+#include "queue.h"
+#include "convolution.h"
 
 /*
-    ì´ë¯¸ì§€ íŒŒì¼ì€ pgmíŒŒì¼ì„ ì‚¬ìš©í•©ë‹ˆë‹¤. pgmíŒŒì¼ì„ ì½ê¸° ìœ„í•´ì„œëŠ” ì¶”ê°€ì ì¸ í”„ë¡œê·¸ë¨ì´ í•„ìš”í•©ë‹ˆë‹¤.
-    ì €ëŠ” 'xnview'ë¥¼ ì‚¬ìš©í•˜ì—¬ ì½ìŠµë‹ˆë‹¤. ë‹¤ìš´ë¡œë“œëŠ” https://www.xnview.com/en/xnviewmp/#downloads
-    ì—¬ê¸°ì„œ ì§„í–‰í•˜ì‹œë©´ ë©ë‹ˆë‹¤. íŒŒì¼ë³€í™˜ë„ ì €ê¸°ì„œ ê°€ëŠ¥í•©ë‹ˆë‹¤. ì´ë¯¸ì§€ í™”ë©´ì„ ë„ì›Œ ë†“ì€ ì±„ë¡œ
-    íŒŒì¼->ì„ íƒì €ì¥?ìƒˆë¡œì €ì¥? ì„ ëˆ„ë¥´ê³  íŒŒì¼í˜•ì‹ì„ pgmìœ¼ë¡œ í•˜ë©´ ë©ë‹ˆë‹¤.
-    í”„ë¡œê·¸ë¨ì„ ë°›ê¸° ê·€ì°®ìœ¼ì‹  ë¶„ì€ https://convertio.co/kr/ í•´ë‹¹ ì˜¨ë¼ì¸ ì‚¬ì´íŠ¸ë¥¼ ì´ìš©í•˜ì‹œë©´
-    ì´ë¯¸ì§€ ìë£Œí˜•ì‹ì„ ë³€í™˜í•˜ì‹¤ ìˆ˜ ìˆìŠµë‹ˆë‹¤.
+    ÀÌ¹ÌÁö ÆÄÀÏÀº pgmÆÄÀÏÀ» »ç¿ëÇÕ´Ï´Ù. pgmÆÄÀÏÀ» ÀĞ±â À§ÇØ¼­´Â Ãß°¡ÀûÀÎ ÇÁ·Î±×·¥ÀÌ ÇÊ¿äÇÕ´Ï´Ù.
+    Àú´Â 'xnview'¸¦ »ç¿ëÇÏ¿© ÀĞ½À´Ï´Ù. ´Ù¿î·Îµå´Â https://www.xnview.com/en/xnviewmp/#downloads
+    ¿©±â¼­ ÁøÇàÇÏ½Ã¸é µË´Ï´Ù. ÆÄÀÏº¯È¯µµ Àú±â¼­ °¡´ÉÇÕ´Ï´Ù. ÀÌ¹ÌÁö È­¸éÀ» ¶ç¿ö ³õÀº Ã¤·Î
+    ÆÄÀÏ->¼±ÅÃÀúÀå?»õ·ÎÀúÀå? À» ´©¸£°í ÆÄÀÏÇü½ÄÀ» pgmÀ¸·Î ÇÏ¸é µË´Ï´Ù.
+    ÇÁ·Î±×·¥À» ¹Ş±â ±ÍÂúÀ¸½Å ºĞÀº https://convertio.co/kr/ ÇØ´ç ¿Â¶óÀÎ »çÀÌÆ®¸¦ ÀÌ¿ëÇÏ½Ã¸é
+    ÀÌ¹ÌÁö ÀÚ·áÇü½ÄÀ» º¯È¯ÇÏ½Ç ¼ö ÀÖ½À´Ï´Ù.
 
 
 
-    ê·¸ë¦¬ê³  convolution.hì˜ í•„í„° ìë£Œí˜•ì€ floatë¡œ, in/out dataì˜ ìë£”í˜•ì€ intë¡œ ê³ ì •í•˜ì—¬ì„œ ì‚¬ìš©í• 
-    ì˜ˆì •ì…ë‹ˆë‹¤. í˜¹ì‹œ ë°”ê¾¸ì–´ì„œ í•¨ìˆ˜ë¥¼ ë§Œë“¤ì—ˆë‹¤ë©´ ì´ë¦„ì„ ë°”ê¾¸ì–´ í—¤ë”íŒŒì¼ì„ ì„ ì–¸í•˜ì—¬ ì°¸ì¡°í•´ì£¼ì„¸ìš”.
+    ±×¸®°í convolution.hÀÇ ÇÊÅÍ ÀÚ·áÇüÀº float·Î, in/out dataÀÇ ÀÚ·ãÇüÀº int·Î °íÁ¤ÇÏ¿©¼­ »ç¿ëÇÒ
+    ¿¹Á¤ÀÔ´Ï´Ù. È¤½Ã ¹Ù²Ù¾î¼­ ÇÔ¼ö¸¦ ¸¸µé¾ú´Ù¸é ÀÌ¸§À» ¹Ù²Ù¾î Çì´õÆÄÀÏÀ» ¼±¾ğÇÏ¿© ÂüÁ¶ÇØÁÖ¼¼¿ä.
 
 
 */
 
 typedef struct {
-    char M, N;//ë§¤ì§ë„˜ë²„ 
-    int row_size;//ë„“ì´
-    int col_size;//ë†’ì´
+    char M, N;//¸ÅÁ÷³Ñ¹ö 
+    int row_size;//³ĞÀÌ
+    int col_size;//³ôÀÌ
     int scale;
-    unsigned char* pixels;//í”½ì…€ ë°ì´í„°
-}image_p5;//p5 pgmíŒŒì¼ì´ë©´ ì´ê±° ì“°ë©´ ë©ë‹ˆë‹¤.
+    unsigned char* pixels;//ÇÈ¼¿ µ¥ÀÌÅÍ
+}image_p5;//p5 pgmÆÄÀÏÀÌ¸é ÀÌ°Å ¾²¸é µË´Ï´Ù.
 
 typedef struct {
-    char M, N;//ë§¤ì§ë„˜ë²„ 
-    int row_size;//ë„“ì´
-    int col_size;//ë†’ì´
+    char M, N;//¸ÅÁ÷³Ñ¹ö 
+    int row_size;//³ĞÀÌ
+    int col_size;//³ôÀÌ
     int scale;
-    int* pixels;//í”½ì…€ ë°ì´í„°
-}image_p2; //p2 pgmíŒŒì¼ì€ ì´ê±° ì“°ë©´ ë©ë‹ˆë‹¤.
+    int* pixels;//ÇÈ¼¿ µ¥ÀÌÅÍ
+}image_p2; //p2 pgmÆÄÀÏÀº ÀÌ°Å ¾²¸é µË´Ï´Ù.
 
 typedef struct {
-    char M, N;//ë§¤ì§ë„˜ë²„ 
-    int row_size;//ë„“ì´
-    int col_size;//ë†’ì´
-    unsigned char* pixels;//í”½ì…€ ë°ì´í„°
-}image_pbm; //ì´ê±°ëŠ” pbmíŒŒì¼ êµ¬ì¡°ì²´ì…ë‹ˆë‹¤. ì‚¬ìš©í•  ì¼ ì—†ì„ ê²ë‹ˆë‹¤.
+    char M, N;//¸ÅÁ÷³Ñ¹ö 
+    int row_size;//³ĞÀÌ
+    int col_size;//³ôÀÌ
+    unsigned char* pixels;//ÇÈ¼¿ µ¥ÀÌÅÍ
+}image_pbm; //ÀÌ°Å´Â pbmÆÄÀÏ ±¸Á¶Ã¼ÀÔ´Ï´Ù. »ç¿ëÇÒ ÀÏ ¾øÀ» °Ì´Ï´Ù.
 
 typedef struct {
-    int row;//xì¢Œí‘œ
-    int col;//yì¢Œí‘œ
+    int row;//xÁÂÇ¥
+    int col;//yÁÂÇ¥
     int pixels;
 } pixel_data;
 
 /*
-    image_p5 : ë§¤ì§ë„˜ë²„ê°€ p5ì¸ pgmíŒŒì¼ì„ ì½ê¸°ìœ„í•œ êµ¬ì¡°ì²´
-    image : ë§¤ì§ë„˜ë²„ê°€ p2ì¸ pgmíŒŒì¼ì„ ì½ê¸°ìœ„í•œ êµ¬ì£¼ì²´
-    char* fileNm : íŒŒì¼ì´ë¦„
-    char M, char N : ë§¤ì§ë„˜ë²„ ex)p2, p5
-    int row_size, int col_size : ì´ë¯¸ì§€ì˜ ê°€ë¡œ/ì„¸ë¡œ í¬ê¸°
-    int scale : gray ìƒ‰ì„ ëª‡ë‹¨ê³„ë¡œ í‘œí˜„í•  ì§€
+    image_p5 : ¸ÅÁ÷³Ñ¹ö°¡ p5ÀÎ pgmÆÄÀÏÀ» ÀĞ±âÀ§ÇÑ ±¸Á¶Ã¼
+    image : ¸ÅÁ÷³Ñ¹ö°¡ p2ÀÎ pgmÆÄÀÏÀ» ÀĞ±âÀ§ÇÑ ±¸ÁÖÃ¼
+    char* fileNm : ÆÄÀÏÀÌ¸§
+    char M, char N : ¸ÅÁ÷³Ñ¹ö ex)p2, p5
+    int row_size, int col_size : ÀÌ¹ÌÁöÀÇ °¡·Î/¼¼·Î Å©±â
+    int scale : gray »öÀ» ¸î´Ü°è·Î Ç¥ÇöÇÒ Áö
 */
 
 image_pbm* read_image_pbm(char* fileNm);
 /*
-    ì´ê±°ëŠ” pbmíŒŒì¼ ì½ëŠ” ê²ƒì…ë‹ˆë‹¤. ì‚¬ìš©í•  ì¼ ì—†ì„ ê²ë‹ˆë‹¤.
+    ÀÌ°Å´Â pbmÆÄÀÏ ÀĞ´Â °ÍÀÔ´Ï´Ù. »ç¿ëÇÒ ÀÏ ¾øÀ» °Ì´Ï´Ù.
 */
 
 image_p2* image_reset(char M, char N, int scale, int row_size, int col_size);
 /*
-    ì´ê²ƒì€ imageêµ¬ì¡°ì²´ë¥¼ ì´ˆê¸°í™” í•˜ê¸° ìœ„í•œ í•¨ìˆ˜ ì…ë‹ˆë‹¤. pgmíŒŒì¼ì˜ pixels dataë¥¼ ì œì™¸í•œ ì •ë³´ë¥¼ ë„£ìœ¼ë©´ pixels dataëŠ” ì „ë¶€ '0'ìœ¼ë¡œ
-    ì´ˆê¸°í™” í•˜ì—¬ ë°˜í™˜í•˜ì—¬ ì¤ë‹ˆë‹¤. ê·¸ ì™¸ì˜ pgmíŒŒì¼ì˜ íŠ¹ì§•ì„ ë‚˜íƒ€ë‚´ëŠ” ë§¤ì§ë„˜ë²„, ê°€ë¡œ/ì„¸ë¡œí¬ê¸°, ìŠ¤ì¼€ì¼ì€ ì…ë ¥í•´ì¤€ ê°’ìœ¼ë¡œ ì´ˆê¸°í™”
-    í•©ë‹ˆë‹¤.
+    ÀÌ°ÍÀº image±¸Á¶Ã¼¸¦ ÃÊ±âÈ­ ÇÏ±â À§ÇÑ ÇÔ¼ö ÀÔ´Ï´Ù. pgmÆÄÀÏÀÇ pixels data¸¦ Á¦¿ÜÇÑ Á¤º¸¸¦ ³ÖÀ¸¸é pixels data´Â ÀüºÎ '0'À¸·Î
+    ÃÊ±âÈ­ ÇÏ¿© ¹İÈ¯ÇÏ¿© Áİ´Ï´Ù. ±× ¿ÜÀÇ pgmÆÄÀÏÀÇ Æ¯Â¡À» ³ªÅ¸³»´Â ¸ÅÁ÷³Ñ¹ö, °¡·Î/¼¼·ÎÅ©±â, ½ºÄÉÀÏÀº ÀÔ·ÂÇØÁØ °ªÀ¸·Î ÃÊ±âÈ­
+    ÇÕ´Ï´Ù.
 */
 
 image_p5* read_image_pgm_p5(char* fileNm);
 /*
-    ì´ í•¨ìˆ˜ëŠ” pgmíŒŒì¼ ì¤‘ì—ì„œ ë§¤ì§ë„˜ë²„ê°€ p5ë¡œ ì„ ì–¸ë˜ì–´ ìˆëŠ” í•¨ìˆ˜ë¥¼ ëª©í‘œë¡œ ì œì‘í•œ í•¨ìˆ˜ì…ë‹ˆë‹¤. ì²˜ìŒ pgmìœ¼ë¡œ ë³€í™˜í•œ íŒŒì¼ì—ì„œëŠ”
-    ë§¤ì§ë„˜ë²„ê°€ p5ë¡œ ì„ ì–¸ë˜ì–´ ìˆê¸°ì— ì´ê²ƒìœ¼ë¡œ ì½ì–´ ë“œë ¤ì•¼ í•©ë‹ˆë‹¤. ì•„ë§ˆ í…ŒìŠ¤íŠ¸ í• ë•Œë‚˜ ê°€ë”ì‹ ì‚¬ìš©í•  ìˆ˜ ìˆì„ê²ë‹ˆë‹¤. ê¸°ë³¸ì ìœ¼ë¡œ
-    ì²˜ìŒ ë¶ˆëŸ¬ì˜¬ ë•Œë§Œ ì‚¬ìš©í•  ê²ƒì´ê¸° ë•Œë¬¸ì— ìµœì¢…ê²°ê³¼ë¬¼ì—ì„œëŠ” í‰ê· ê°’í•„í„°ì—ì„œë§Œ ì‚¬ìš©ë  ê²ƒ ê°™ìŠµë‹ˆë‹¤.
+    ÀÌ ÇÔ¼ö´Â pgmÆÄÀÏ Áß¿¡¼­ ¸ÅÁ÷³Ñ¹ö°¡ p5·Î ¼±¾ğµÇ¾î ÀÖ´Â ÇÔ¼ö¸¦ ¸ñÇ¥·Î Á¦ÀÛÇÑ ÇÔ¼öÀÔ´Ï´Ù. Ã³À½ pgmÀ¸·Î º¯È¯ÇÑ ÆÄÀÏ¿¡¼­´Â
+    ¸ÅÁ÷³Ñ¹ö°¡ p5·Î ¼±¾ğµÇ¾î ÀÖ±â¿¡ ÀÌ°ÍÀ¸·Î ÀĞ¾î µå·Á¾ß ÇÕ´Ï´Ù. ¾Æ¸¶ Å×½ºÆ® ÇÒ¶§³ª °¡²û½Ä »ç¿ëÇÒ ¼ö ÀÖÀ»°Ì´Ï´Ù. ±âº»ÀûÀ¸·Î
+    Ã³À½ ºÒ·¯¿Ã ¶§¸¸ »ç¿ëÇÒ °ÍÀÌ±â ¶§¹®¿¡ ÃÖÁ¾°á°ú¹°¿¡¼­´Â Æò±Õ°ªÇÊÅÍ¿¡¼­¸¸ »ç¿ëµÉ °Í °°½À´Ï´Ù.
 */
 
 image_p2* read_image_pgm_p2(char* fileNm);
 /*
-    ì´ í•¨ìˆ˜ëŠ” pgmíŒŒì¼ ì¤‘ì—ì„œ ë§¤ì§ë„˜ë²„ê°€ p2ë¡œ ì„ ì–¸ë˜ì–´ ìˆëŠ” í•¨ìˆ˜ë¥¼ ëª©í‘œë¡œ ì œì‘í•œ í•¨ìˆ˜ì…ë‹ˆë‹¤. í‰ê· ê°’ í••í„°ë¥¼ ì§€ë‚œ ì´ë¯¸ì§€ ë°ì´í„°ëŠ”
-    ì „ë¶€ ë§¤ì§ë„˜ë²„ê°€ p2ì¸ í˜•ì‹ìœ¼ë¡œ ì €ì¥ë˜ê²Œ ë§Œë“¤ì—ˆìŠµë‹ˆë‹¤. ê·¸ë˜ì„œ í•œë²ˆì´ë¼ë„ ë³€í˜•ì„ ê°€í•œ ì´ë¯¸ì§€ íŒŒì¼ì€ ì´ í•¨ìˆ˜ë¡œ ì½ì–´ë“¤ì—¬ì•¼
-    í•©ë‹ˆë‹¤.
+    ÀÌ ÇÔ¼ö´Â pgmÆÄÀÏ Áß¿¡¼­ ¸ÅÁ÷³Ñ¹ö°¡ p2·Î ¼±¾ğµÇ¾î ÀÖ´Â ÇÔ¼ö¸¦ ¸ñÇ¥·Î Á¦ÀÛÇÑ ÇÔ¼öÀÔ´Ï´Ù. Æò±Õ°ª À–ÅÍ¸¦ Áö³­ ÀÌ¹ÌÁö µ¥ÀÌÅÍ´Â
+    ÀüºÎ ¸ÅÁ÷³Ñ¹ö°¡ p2ÀÎ Çü½ÄÀ¸·Î ÀúÀåµÇ°Ô ¸¸µé¾ú½À´Ï´Ù. ±×·¡¼­ ÇÑ¹øÀÌ¶óµµ º¯ÇüÀ» °¡ÇÑ ÀÌ¹ÌÁö ÆÄÀÏÀº ÀÌ ÇÔ¼ö·Î ÀĞ¾îµé¿©¾ß
+    ÇÕ´Ï´Ù.
 */
 
 image_p2* pconvert_p5_to_p2(image_p5* img);
 /*
-    image_p5ìë£Œí˜•ì„ image_p2ìë£Œí˜•ìœ¼ë¡œ ë°”ê¾¸ì–´ ë°˜í™˜í•´ì£¼ëŠ” í•¨ìˆ˜ì…ë‹ˆë‹¤. í•¨ìˆ˜ ë§Œë“œì‹¤ ë•Œ ì—ëŸ¬ê°€ ë°œìƒ í•˜ì‹ ë‹¤ë©´ p2,p5ê°„ì˜ pixelsì˜
-    ìë£Œí˜•ì´ ë¬¸ì œê°€ ë  ìˆ˜ ìˆìŠµë‹ˆë‹¤. ì´ í•¨ìˆ˜ë¡œ ë°”ê¾¸ì–´ í…ŒìŠ¤íŠ¸ í•˜ì‹œê¸°ë¥¼ ê¶Œì¥í•©ë‹ˆë‹¤.
+    image_p5ÀÚ·áÇüÀ» image_p2ÀÚ·áÇüÀ¸·Î ¹Ù²Ù¾î ¹İÈ¯ÇØÁÖ´Â ÇÔ¼öÀÔ´Ï´Ù. ÇÔ¼ö ¸¸µå½Ç ¶§ ¿¡·¯°¡ ¹ß»ı ÇÏ½Å´Ù¸é p2,p5°£ÀÇ pixelsÀÇ
+    ÀÚ·áÇüÀÌ ¹®Á¦°¡ µÉ ¼ö ÀÖ½À´Ï´Ù. ÀÌ ÇÔ¼ö·Î ¹Ù²Ù¾î Å×½ºÆ® ÇÏ½Ã±â¸¦ ±ÇÀåÇÕ´Ï´Ù.
 */
 
 int image_write(char* fileNm, image_p2* img);
 /*
-    imageë¡œ ì„ ì–¸ë˜ì–´ ìˆëŠ” ë§¤ì§ë„˜ë²„ê°€ p2ì¸ êµ¬ì¡°ì²´ë¥¼ íŒŒì¼ë¡œ ë°”ê¾¸ì–´ ì €ì¥í•˜ëŠ” í•¨ìˆ˜ ì…ë‹ˆë‹¤.
+    image·Î ¼±¾ğµÇ¾î ÀÖ´Â ¸ÅÁ÷³Ñ¹ö°¡ p2ÀÎ ±¸Á¶Ã¼¸¦ ÆÄÀÏ·Î ¹Ù²Ù¾î ÀúÀåÇÏ´Â ÇÔ¼ö ÀÔ´Ï´Ù.
  */
 
 void close_image_p2(image_p2* img);
 /*
-    ì½”ë“œë¥¼ ë§Œë“¤ë˜ ì¤‘ image_reset, read_image_pgm_p2ë¥¼ ì‚¬ìš©í–ˆë‹¤ë©´ ë§ˆì§€ë§‰ì— í• ë‹¹í•œ ëª¨ë“  ë©”ëª¨ë¦¬ ì˜ì—­ì„
-    ë‹«ì•„ì£¼ì–´ì•¼ í•©ë‹ˆë‹¤. ì´ í•¨ìˆ˜ëŠ” í• ë‹¹í•œ ì˜ì—­ì„ ì—†ì• ì£¼ê¸° ìœ„í•œ í•¨ìˆ˜ì…ë‹ˆë‹¤.
+    ÄÚµå¸¦ ¸¸µé´ø Áß image_reset, read_image_pgm_p2¸¦ »ç¿ëÇß´Ù¸é ¸¶Áö¸·¿¡ ÇÒ´çÇÑ ¸ğµç ¸Ş¸ğ¸® ¿µ¿ªÀ»
+    ´İ¾ÆÁÖ¾î¾ß ÇÕ´Ï´Ù. ÀÌ ÇÔ¼ö´Â ÇÒ´çÇÑ ¿µ¿ªÀ» ¾ø¾ÖÁÖ±â À§ÇÑ ÇÔ¼öÀÔ´Ï´Ù.
 */
 
 void close_image_p5(image_p5* img);
 /*
-    ì½”ë“œë¥¼ ë§Œë“¤ë˜ ì¤‘ read_image_pgm_p5ë¥¼ ì‚¬ìš©í–ˆë‹¤ë©´ ë§ˆì§€ë§‰ì— í• ë‹¹í•œ ëª¨ë“  ë©”ëª¨ë¦¬ ì˜ì—­ì„
-    ë‹«ì•„ì£¼ì–´ì•¼ í•©ë‹ˆë‹¤. ì´ í•¨ìˆ˜ëŠ” í• ë‹¹í•œ ì˜ì—­ì„ ì—†ì• ì£¼ê¸° ìœ„í•œ í•¨ìˆ˜ì…ë‹ˆë‹¤.
+    ÄÚµå¸¦ ¸¸µé´ø Áß read_image_pgm_p5¸¦ »ç¿ëÇß´Ù¸é ¸¶Áö¸·¿¡ ÇÒ´çÇÑ ¸ğµç ¸Ş¸ğ¸® ¿µ¿ªÀ»
+    ´İ¾ÆÁÖ¾î¾ß ÇÕ´Ï´Ù. ÀÌ ÇÔ¼ö´Â ÇÒ´çÇÑ ¿µ¿ªÀ» ¾ø¾ÖÁÖ±â À§ÇÑ ÇÔ¼öÀÔ´Ï´Ù.
 */
 
 void average_filter(image_p2* out, image_p2* in, int filter_row_size);
 /*
-í‰ê· ê°’ í•„í„°ëë‹ˆë‹¤. í•©ì„±ê³± ì ìš©ë˜ëŠ”ì§€ í™•ì¸í•˜ê¸° ìœ„í•œ í•¨ìˆ˜ì˜€ìŠµë‹ˆë‹¤.
+Æò±Õ°ª ÇÊÅÍ¶ø´Ï´Ù. ÇÕ¼º°ö Àû¿ëµÇ´ÂÁö È®ÀÎÇÏ±â À§ÇÑ ÇÔ¼ö¿´½À´Ï´Ù.
 */
 void Gaussian_filter(image_p2* out, image_p2* in, float sigma, int filter_size);
 /*
-Sigmaê°’ê³¼ Filter_Sizeë¥¼ ë§¤ê°œë³€ìˆ˜ë¡œ ë°›ê³  ê·¸ì— ë”°ë¥¸ ìˆ˜ì •ëœ ê°€ìš°ì‹œì•ˆ ë¶„í¬ë¥¼ í˜•ì„±í•œ í›„,
-ì›ë³¸ ì´ë¯¸ì§€ì— ê°€ìš°ì‹œì•ˆ í•„í„°ë¥¼ í•©ì„±ê³±í•œ ê²°ê³¼ë¬¼ì„ ì¶œë ¥í•˜ëŠ” í•¨ìˆ˜ì…ë‹ˆë‹¤.
+Sigma°ª°ú Filter_Size¸¦ ¸Å°³º¯¼ö·Î ¹Ş°í ±×¿¡ µû¸¥ ¼öÁ¤µÈ °¡¿ì½Ã¾È ºĞÆ÷¸¦ Çü¼ºÇÑ ÈÄ,
+¿øº» ÀÌ¹ÌÁö¿¡ °¡¿ì½Ã¾È ÇÊÅÍ¸¦ ÇÕ¼º°öÇÑ °á°ú¹°À» Ãâ·ÂÇÏ´Â ÇÔ¼öÀÔ´Ï´Ù.
 */
 
 void gradient(image_p2* out_dir, image_p2* out_mag, image_p2* in, int filter_type);
 /*
-ì´í›„ ì—¬ëŸ¬ í•¨ìˆ˜ì˜ ë™ì‘ì„ ìœ„í•œ ì…ë ¥ì„ ìƒì„±í•˜ëŠ” Gradient í•¨ìˆ˜ ì…ë‹ˆë‹¤.
-ì„ì˜ì˜ ìœ„ì¹˜ì— ëŒ€í•´ ë¯¸ë¶„ ë§ˆìŠ¤í¬ë¥¼ í†µê³¼ ì‹œí‚¨ í›„ ì¶”ê°€ì ì¸ ì²˜ë¦¬ë¥¼ í†µí•´ í¬ê¸°ì™€ ê°ë„ ì„±ë¶„ì„ ë°˜í™˜í•©ë‹ˆë‹¤.
+ÀÌÈÄ ¿©·¯ ÇÔ¼öÀÇ µ¿ÀÛÀ» À§ÇÑ ÀÔ·ÂÀ» »ı¼ºÇÏ´Â Gradient ÇÔ¼ö ÀÔ´Ï´Ù.
+ÀÓÀÇÀÇ À§Ä¡¿¡ ´ëÇØ ¹ÌºĞ ¸¶½ºÅ©¸¦ Åë°ú ½ÃÅ² ÈÄ Ãß°¡ÀûÀÎ Ã³¸®¸¦ ÅëÇØ Å©±â¿Í °¢µµ ¼ººĞÀ» ¹İÈ¯ÇÕ´Ï´Ù.
 */
 
 void NonMax(image_p2* out_dir, image_p2* in_dir, image_p2* in_mag, int size);
 /*
-Gradient í•¨ìˆ˜ì˜ í¬ê¸° ì—°ì‚° ê²°ê³¼ì™€ ë°©í–¥ ì—°ì‚° ê²°ê³¼ë¥¼ ì…ë ¥ìœ¼ë¡œ ë°›ê³ , ì„ì˜ì˜ ì…€ì— ëŒ€í•œ í¬ê¸°ë¥¼
-ê·¸ ì…€ì—ì„œì˜ ë°©í–¥ê°’ì„ ê³ ë ¤í•´ ì¸ì ‘ ì…€ê³¼ í¬ê¸°ë¥¼ ë¹„êµí•˜ê³ , í•´ë‹¹ ì…€ì´ ì œì¼ í¬ì§€ ì•Šë‹¤ë©´ 0,
-ì œì¼ í¬ë‹¤ë©´ í¬ê¸°ê°’ì„ ê·¸ëŒ€ë¡œ ë‘ëŠ” í•¨ìˆ˜ì´ê³ , ë°˜í™˜ê°’ì€ ìˆ˜ì •ëœ í¬ê¸°ê°’ê³¼ ìˆ˜ì •ë˜ì§€ ì•Šì€ ë°©í–¥ê°’ì…ë‹ˆë‹¤.
-í•´ë‹¹ í•¨ìˆ˜ëŠ” ì§ì„ í›„ë³´êµ°ì„ í•œë²ˆ ê±¸ëŸ¬ë‚´ëŠ”ê±¸ ëª©ì ìœ¼ë¡œ í•©ë‹ˆë‹¤.
+Gradient ÇÔ¼öÀÇ Å©±â ¿¬»ê °á°ú¿Í ¹æÇâ ¿¬»ê °á°ú¸¦ ÀÔ·ÂÀ¸·Î ¹Ş°í, ÀÓÀÇÀÇ ¼¿¿¡ ´ëÇÑ Å©±â¸¦
+±× ¼¿¿¡¼­ÀÇ ¹æÇâ°ªÀ» °í·ÁÇØ ÀÎÁ¢ ¼¿°ú Å©±â¸¦ ºñ±³ÇÏ°í, ÇØ´ç ¼¿ÀÌ Á¦ÀÏ Å©Áö ¾Ê´Ù¸é 0,
+Á¦ÀÏ Å©´Ù¸é Å©±â°ªÀ» ±×´ë·Î µÎ´Â ÇÔ¼öÀÌ°í, ¹İÈ¯°ªÀº ¼öÁ¤µÈ Å©±â°ª°ú ¼öÁ¤µÇÁö ¾ÊÀº ¹æÇâ°ªÀÔ´Ï´Ù.
+ÇØ´ç ÇÔ¼ö´Â Á÷¼±ÈÄº¸±ºÀ» ÇÑ¹ø °É·¯³»´Â°É ¸ñÀûÀ¸·Î ÇÕ´Ï´Ù.
 */
 
 void DoubleT(image_p2* out_dir, image_p2* in_dir, int HighT, int LowT);
 /*
-Nom-maximum í•¨ìˆ˜ì˜ ê²°ê³¼ë¥¼ ì…ë ¥ìœ¼ë¡œ ë°›ê³ , ì„ì˜ì˜ ì…€ì— ëŒ€í•´ì„œ ê·¸ í¬ê¸°ê°€ ë§¤ê°œë³€ìˆ˜ë¡œ ì„¤ì •í•œ
-High Threshold Value, Low Threshold Valueì™€ì˜ ìƒëŒ€ì ì¸ í¬ê¸°ì— ì˜í•´
-í•´ë‹¹ ì…€ì˜ í¬ê¸°ë¥¼ ì£½ì¼ì§€ ( 0ìœ¼ë¡œ ë§Œë“¤ì§€), ê·¸ëŒ€ë¡œ ì‚´ë¦´ì§€ ( ê¸°ì¡´ê°’ ìœ ì§€ ), 8ë¹„íŠ¸ ê·¸ë ˆì´ìŠ¤ì¼€ì¼ì˜ ìµœëŒ€ì¹˜ë¡œ ì„¤ì •í•  ì§€ ( í°ìƒ‰ìœ¼ë¡œì¨ 255 )
-ê²°ì •í•´ì£¼ëŠ” í•¨ìˆ˜ê°€ ë©ë‹ˆë‹¤. ì´ëŠ” ê³§ ì…€ì„ ì£½ì´ê±°ë‚˜, ì•½ edgeë¡œ íŒë‹¨í•˜ê±°ë‚˜, ê°• edgeë¡œ íŒë‹¨í•˜ëŠ” í•¨ìˆ˜ê°€ ë©ë‹ˆë‹¤.
+Nom-maximum ÇÔ¼öÀÇ °á°ú¸¦ ÀÔ·ÂÀ¸·Î ¹Ş°í, ÀÓÀÇÀÇ ¼¿¿¡ ´ëÇØ¼­ ±× Å©±â°¡ ¸Å°³º¯¼ö·Î ¼³Á¤ÇÑ
+High Threshold Value, Low Threshold Value¿ÍÀÇ »ó´ëÀûÀÎ Å©±â¿¡ ÀÇÇØ
+ÇØ´ç ¼¿ÀÇ Å©±â¸¦ Á×ÀÏÁö ( 0À¸·Î ¸¸µéÁö), ±×´ë·Î »ì¸±Áö ( ±âÁ¸°ª À¯Áö ), 8ºñÆ® ±×·¹ÀÌ½ºÄÉÀÏÀÇ ÃÖ´ëÄ¡·Î ¼³Á¤ÇÒ Áö ( Èò»öÀ¸·Î½á 255 )
+°áÁ¤ÇØÁÖ´Â ÇÔ¼ö°¡ µË´Ï´Ù. ÀÌ´Â °ğ ¼¿À» Á×ÀÌ°Å³ª, ¾à edge·Î ÆÇ´ÜÇÏ°Å³ª, °­ edge·Î ÆÇ´ÜÇÏ´Â ÇÔ¼ö°¡ µË´Ï´Ù.
 */
 
-void Hysterisis(image_p2* out_dir, image_p2* out_mag, image_p2* in_dir, image_p2* in_mag);
+void Hysterisis(image_p2* out_dir, image_p2* in_dir, image_p2* in_mag);
 /*
-ì•ì„œ í¬ê¸°ë¥¼ 0, ì•½ edge, ê°• edgeë¡œ ì„¤ì •í–ˆëŠ”ë°, Hysterisis í•¨ìˆ˜ì—ì„  ì•½ edgeì™€ ê°• edgeì˜ ì—°ê²°ê´€ê³„ë¥¼ í†µí•´
-ì•½ edge ì…€ì˜ ë°ì´í„°ë¥¼ ì²˜ë¦¬í•˜ëŠ” í•¨ìˆ˜ì…ë‹ˆë‹¤.
-ì…ë ¥ë°›ì€ í¬ê¸° ì •ë³´ì— ëŒ€í•´ì„œ ê¸°ì¤€ ì…€ì´ ë˜ëŠ” Anchorë¥¼ ì„¤ì •í•˜ê³ , í•´ë‹¹ ì…€ì„ ë‘˜ëŸ¬ì‹¸ëŠ” 8ë°©í–¥ì˜ ì…€ì— ëŒ€í•œ
-ì •ë³´ë¥¼ ì·¨ë“í•˜ì—¬ Anchor ì…€ì˜ ê°ë„ ì„±ë¶„ì´ ì£¼ì–´ì¡Œì„ ë•Œ í•´ë‹¹ ë°©í–¥ì— ì•Œë§ëŠ” ë¹„êµêµ°ì„ ì„ íƒí•˜ê³ 
-ê·¸ í¬ê¸°ê°€ 255, í°ìƒ‰ì¸ì§€ë¥¼ íŒë‹¨í•˜ì—¬ ì—°ê²°í•´ì£¼ëŠ” ì‘ì—…ì…ë‹ˆë‹¤.
-í•´ë‹¹ í•¨ìˆ˜ëŠ” ì•½ edgeë¡œ êµ¬ë¶„ëœ ì…€ë“¤ì— ëŒ€í•´ ê°• edgeì™€ì˜ ì—°ê²°ì„±ì´ ìˆë‹¤ë©´ ì´ë¥¼ edgeë¡œ í¸ì…ì‹œí‚¤ê³ 
-ì•„ë‹ˆë©´ 0ìœ¼ë¡œ ì´ˆê¸°í™”í•˜ëŠ”ê±¸ ëª©ì ìœ¼ë¡œ í•©ë‹ˆë‹¤.
+¾Õ¼­ Å©±â¸¦ 0, ¾à edge, °­ edge·Î ¼³Á¤Çß´Âµ¥, Hysterisis ÇÔ¼ö¿¡¼± ¾à edge¿Í °­ edgeÀÇ ¿¬°á°ü°è¸¦ ÅëÇØ
+¾à edge ¼¿ÀÇ µ¥ÀÌÅÍ¸¦ Ã³¸®ÇÏ´Â ÇÔ¼öÀÔ´Ï´Ù.
+ÀÔ·Â¹ŞÀº Å©±â Á¤º¸¿¡ ´ëÇØ¼­ ±âÁØ ¼¿ÀÌ µÇ´Â Anchor¸¦ ¼³Á¤ÇÏ°í, ÇØ´ç ¼¿À» µÑ·¯½Î´Â 8¹æÇâÀÇ ¼¿¿¡ ´ëÇÑ
+Á¤º¸¸¦ ÃëµæÇÏ¿© Anchor ¼¿ÀÇ °¢µµ ¼ººĞÀÌ ÁÖ¾îÁ³À» ¶§ ÇØ´ç ¹æÇâ¿¡ ¾Ë¸Â´Â ºñ±³±ºÀ» ¼±ÅÃÇÏ°í
+±× Å©±â°¡ 255, Èò»öÀÎÁö¸¦ ÆÇ´ÜÇÏ¿© ¿¬°áÇØÁÖ´Â ÀÛ¾÷ÀÔ´Ï´Ù.
+ÇØ´ç ÇÔ¼ö´Â ¾à edge·Î ±¸ºĞµÈ ¼¿µé¿¡ ´ëÇØ °­ edge¿ÍÀÇ ¿¬°á¼ºÀÌ ÀÖ´Ù¸é ÀÌ¸¦ edge·Î ÆíÀÔ½ÃÅ°°í
+¾Æ´Ï¸é 0À¸·Î ÃÊ±âÈ­ÇÏ´Â°É ¸ñÀûÀ¸·Î ÇÕ´Ï´Ù.
 */
 
-float my_pi = (float)3.141592; // ìƒìˆ˜ ì„¤ì •
+float my_pi = (float)3.141592; // »ó¼ö ¼³Á¤
 
 image_p2* pconvert_p5_to_p2(image_p5* img) {
     image_p2* img_p2;
@@ -169,14 +170,14 @@ image_p2* pconvert_p5_to_p2(image_p5* img) {
     img_p2->scale = img->scale;
 
 
-    // <-- ë©”ëª¨ë¦¬ í• ë‹¹
+    // <-- ¸Ş¸ğ¸® ÇÒ´ç
     img_p2->pixels = (int*)malloc(img_p2->row_size * img_p2->col_size * sizeof(int));
 
-    if (img_p2->pixels == NULL) {//ë©”ëª¨ë¦¬ í• ë‹¹ ì‹¤íŒ¨ì‹œ 0ì„ ë°˜í™˜
+    if (img_p2->pixels == NULL) {//¸Ş¸ğ¸® ÇÒ´ç ½ÇÆĞ½Ã 0À» ¹İÈ¯
         return NULL;
     }
 
-    for (int i = 0; i < img->col_size * img->row_size; i++) {//í• ë‹¹í•œ ë©”ëª¨ë¦¬ ì´ˆê¸°í™”
+    for (int i = 0; i < img->col_size * img->row_size; i++) {//ÇÒ´çÇÑ ¸Ş¸ğ¸® ÃÊ±âÈ­
         img_p2->pixels[i] = (int)img->pixels[i];
     }
 
@@ -191,21 +192,21 @@ image_pbm* read_image_pbm(char* fileNm) {
     }
 
     FILE* fp = fopen(fileNm, "r");
-    fscanf(fp, "%c %c", &img->M, &img->N);   // ë§¤ì§ë„˜ë²„ ì½ê¸°
-    fscanf(fp, "%d %d", &img->row_size, &img->col_size);   // ê°€ë¡œ, ì„¸ë¡œ ì½ê¸°
+    fscanf(fp, "%c %c", &img->M, &img->N);   // ¸ÅÁ÷³Ñ¹ö ÀĞ±â
+    fscanf(fp, "%d %d", &img->row_size, &img->col_size);   // °¡·Î, ¼¼·Î ÀĞ±â
 
-    // <-- ë©”ëª¨ë¦¬ í• ë‹¹
+    // <-- ¸Ş¸ğ¸® ÇÒ´ç
     img->pixels = (unsigned char*)malloc(img->row_size * img->col_size * sizeof(unsigned char*));
 
-    if (img->pixels == NULL) {//ë©”ëª¨ë¦¬ í• ë‹¹ ì‹¤íŒ¨ì‹œ 0ì„ ë°˜í™˜
+    if (img->pixels == NULL) {//¸Ş¸ğ¸® ÇÒ´ç ½ÇÆĞ½Ã 0À» ¹İÈ¯
         return NULL;
     }
 
-    for (int i = 0; i < img->col_size * img->row_size; i++) {//í• ë‹¹í•œ ë©”ëª¨ë¦¬ ì´ˆê¸°í™”
+    for (int i = 0; i < img->col_size * img->row_size; i++) {//ÇÒ´çÇÑ ¸Ş¸ğ¸® ÃÊ±âÈ­
         img->pixels[i] = (unsigned char)0;
     }
 
-    // <-- pbm íŒŒì¼ë¡œë¶€í„° í”½ì…€ê°’ì„ ì½ì–´ì„œ í• ë‹¹í•œ ë©”ëª¨ë¦¬ì— load
+    // <-- pbm ÆÄÀÏ·ÎºÎÅÍ ÇÈ¼¿°ªÀ» ÀĞ¾î¼­ ÇÒ´çÇÑ ¸Ş¸ğ¸®¿¡ load
     int tmp = 0;
     for (int c = 0; c < img->col_size; c++) {
         for (int r = 0; r < img->row_size; r++) {
@@ -215,7 +216,7 @@ image_pbm* read_image_pbm(char* fileNm) {
     }
     // -->
 
-    fclose(fp); // ë” ì´ìƒ ì‚¬ìš©í•˜ì§€ ì•ŠëŠ” íŒŒì¼ì„ ë‹«ì•„ ì¤Œ
+    fclose(fp); // ´õ ÀÌ»ó »ç¿ëÇÏÁö ¾Ê´Â ÆÄÀÏÀ» ´İ¾Æ ÁÜ
 
     return img;
 }
@@ -236,14 +237,14 @@ image_p2* image_reset(char M, char N, int scale, int row_size, int col_size) {
     img->scale = 255;
 
 
-    // <-- ë©”ëª¨ë¦¬ í• ë‹¹
-    img->pixels = (int*)malloc( img->row_size* img->col_size * sizeof(int));
+    // <-- ¸Ş¸ğ¸® ÇÒ´ç
+    img->pixels = (int*)malloc(img->row_size * img->col_size * sizeof(int));
 
-    if (img->pixels == NULL) {//ë©”ëª¨ë¦¬ í• ë‹¹ ì‹¤íŒ¨ì‹œ 0ì„ ë°˜í™˜
+    if (img->pixels == NULL) {//¸Ş¸ğ¸® ÇÒ´ç ½ÇÆĞ½Ã 0À» ¹İÈ¯
         return NULL;
     }
 
-    for (int i = 0; i < img->col_size * img->row_size; i++) {//í• ë‹¹í•œ ë©”ëª¨ë¦¬ ì´ˆê¸°í™”
+    for (int i = 0; i < img->col_size * img->row_size; i++) {//ÇÒ´çÇÑ ¸Ş¸ğ¸® ÃÊ±âÈ­
         img->pixels[i] = (int)0;
     }
 
@@ -259,22 +260,22 @@ image_p5* read_image_pgm_p5(char* fileNm) {
 
     int scale;
     FILE* fp = fopen(fileNm, "rb");
-    fscanf(fp, "%c %c", &img->M, &img->N);   // ë§¤ì§ë„˜ë²„ ì½ê¸°
-    fscanf(fp, "%d %d", &img->row_size, &img->col_size);   // ê°€ë¡œ, ì„¸ë¡œ ì½ê¸°
+    fscanf(fp, "%c %c", &img->M, &img->N);   // ¸ÅÁ÷³Ñ¹ö ÀĞ±â
+    fscanf(fp, "%d %d", &img->row_size, &img->col_size);   // °¡·Î, ¼¼·Î ÀĞ±â
     fscanf(fp, "%d ", &img->scale);
 
-    // <-- ë©”ëª¨ë¦¬ í• ë‹¹
+    // <-- ¸Ş¸ğ¸® ÇÒ´ç
     img->pixels = (unsigned char*)malloc(img->row_size * img->col_size * sizeof(unsigned char));
 
-    if (img->pixels == NULL) {//ë©”ëª¨ë¦¬ í• ë‹¹ ì‹¤íŒ¨ì‹œ 0ì„ ë°˜í™˜
+    if (img->pixels == NULL) {//¸Ş¸ğ¸® ÇÒ´ç ½ÇÆĞ½Ã 0À» ¹İÈ¯
         return NULL;
     }
 
-    for (int i = 0; i < img->col_size * img->row_size; i++) {//í• ë‹¹í•œ ë©”ëª¨ë¦¬ ì´ˆê¸°í™”
+    for (int i = 0; i < img->col_size * img->row_size; i++) {//ÇÒ´çÇÑ ¸Ş¸ğ¸® ÃÊ±âÈ­
         img->pixels[i] = (unsigned char)0;
     }
 
-    // <-- pbm íŒŒì¼ë¡œë¶€í„° í”½ì…€ê°’ì„ ì½ì–´ì„œ í• ë‹¹í•œ ë©”ëª¨ë¦¬ì— load
+    // <-- pbm ÆÄÀÏ·ÎºÎÅÍ ÇÈ¼¿°ªÀ» ÀĞ¾î¼­ ÇÒ´çÇÑ ¸Ş¸ğ¸®¿¡ load
     int tmp = 0;
     for (int c = 0; c < img->col_size; c++) {
         for (int r = 0; r < img->row_size; r++) {
@@ -283,7 +284,7 @@ image_p5* read_image_pgm_p5(char* fileNm) {
     }
     // -->
 
-    fclose(fp); // ë” ì´ìƒ ì‚¬ìš©í•˜ì§€ ì•ŠëŠ” íŒŒì¼ì„ ë‹«ì•„ ì¤Œ
+    fclose(fp); // ´õ ÀÌ»ó »ç¿ëÇÏÁö ¾Ê´Â ÆÄÀÏÀ» ´İ¾Æ ÁÜ
 
     return img;
 }
@@ -297,22 +298,22 @@ image_p2* read_image_pgm_p2(char* fileNm) {
 
     int scale;
     FILE* fp = fopen(fileNm, "rb");
-    fscanf(fp, "%c %c", &img->M, &img->N);   // ë§¤ì§ë„˜ë²„ ì½ê¸°
-    fscanf(fp, "%d %d", &img->row_size, &img->col_size);   // ê°€ë¡œ, ì„¸ë¡œ ì½ê¸°
+    fscanf(fp, "%c %c", &img->M, &img->N);   // ¸ÅÁ÷³Ñ¹ö ÀĞ±â
+    fscanf(fp, "%d %d", &img->row_size, &img->col_size);   // °¡·Î, ¼¼·Î ÀĞ±â
     fscanf(fp, "%d ", &img->scale);
 
-    // <-- ë©”ëª¨ë¦¬ í• ë‹¹
+    // <-- ¸Ş¸ğ¸® ÇÒ´ç
     img->pixels = (int*)malloc(img->row_size * img->col_size * sizeof(int));
 
-    if (img->pixels == NULL) {//ë©”ëª¨ë¦¬ í• ë‹¹ ì‹¤íŒ¨ì‹œ 0ì„ ë°˜í™˜
+    if (img->pixels == NULL) {//¸Ş¸ğ¸® ÇÒ´ç ½ÇÆĞ½Ã 0À» ¹İÈ¯
         return NULL;
     }
 
-    for (int i = 0; i < img->col_size * img->row_size; i++) {//í• ë‹¹í•œ ë©”ëª¨ë¦¬ ì´ˆê¸°í™”
+    for (int i = 0; i < img->col_size * img->row_size; i++) {//ÇÒ´çÇÑ ¸Ş¸ğ¸® ÃÊ±âÈ­
         img->pixels[i] = (int)0;
     }
 
-    // <-- pbm íŒŒì¼ë¡œë¶€í„° í”½ì…€ê°’ì„ ì½ì–´ì„œ í• ë‹¹í•œ ë©”ëª¨ë¦¬ì— load
+    // <-- pbm ÆÄÀÏ·ÎºÎÅÍ ÇÈ¼¿°ªÀ» ÀĞ¾î¼­ ÇÒ´çÇÑ ¸Ş¸ğ¸®¿¡ load
     int tmp = 0;
     for (int c = 0; c < img->col_size; c++) {
         for (int r = 0; r < img->row_size; r++) {
@@ -321,7 +322,7 @@ image_p2* read_image_pgm_p2(char* fileNm) {
     }
     // -->
 
-    fclose(fp); // ë” ì´ìƒ ì‚¬ìš©í•˜ì§€ ì•ŠëŠ” íŒŒì¼ì„ ë‹«ì•„ ì¤Œ
+    fclose(fp); // ´õ ÀÌ»ó »ç¿ëÇÏÁö ¾Ê´Â ÆÄÀÏÀ» ´İ¾Æ ÁÜ
 
     return img;
 }
@@ -332,7 +333,7 @@ int image_write(char* fileNm, image_p2* img)
 
     fp = fopen(fileNm, "w");
     if (fp == NULL) {
-        fprintf(stderr, "íŒŒì¼ ìƒì„±ì— ì‹¤íŒ¨í•˜ì˜€ìŠµë‹ˆë‹¤.\n");
+        fprintf(stderr, "ÆÄÀÏ »ı¼º¿¡ ½ÇÆĞÇÏ¿´½À´Ï´Ù.\n");
         return 0;
     }
 
@@ -340,7 +341,7 @@ int image_write(char* fileNm, image_p2* img)
     fprintf(fp, "%d %d\n", img->row_size, img->col_size);
     fprintf(fp, "%d\n", 255);
 
-    int tmp;								// int typeì„ì— ìœ ì˜
+    int tmp;								// int typeÀÓ¿¡ À¯ÀÇ
 
     for (int c = 0; c < img->col_size; c++) {
         for (int r = 0; r < img->row_size; r++) {
@@ -409,50 +410,50 @@ void Gaussian_filter(image_p2* out, image_p2* in, float sigma, int filter_size) 
         filter[i] = 0;
     }
 
-    OG_Gaussian_row: for (xVal = 0; xVal < filter_size; xVal++)
+OG_Gaussian_row: for (xVal = 0; xVal < filter_size; xVal++)
+{
+OG_Gaussian_col: for (yVal = 0; yVal < filter_size; yVal++)
+{
+    float xInput = (float)xVal - (filter_size - 1) / 2;
+    float yInput = (float)yVal - (filter_size - 1) / 2;
+    float tmp = k2 * expf(-(xInput * xInput + yInput * yInput) / k1);
+    filter[xVal * filter_size + yVal] = tmp;
+    //±âº» °¡¿ì½Ã¾È Ä¿³ÎÀ» Çà·ÄÀÇ À§Ä¡¿¡ ¸Â°Ô ÀúÀåÇÔ.
+}
+}
+
+
+Sum_row: for (a = 0; a < f_size; a++)
+{
+Sum_col: for (b = 0; b < f_size; b++)
+{
+    sum += filter[(a * f_size) + b];
+    // ÀüÃ¼ ¹è¿­ ÇÕ ±¸ÇÏ±â
+}
+}
+
+offset = 1 - sum;
+// ¿ÀÂ÷ ¼ººĞ º¸Á¤À» À§ÇÑ ¿ÀÇÁ¼Â º¯¼ö ¼³Á¤
+offset = offset / (filter_size * filter_size);
+// ¿ÀÇÁ¼ÂÀ» Àü¿µ¿ª µ¿µîÇÏ°Ô º¸Á¤ÇÏ±â À§ÇÑ »ó¼ö Àç°è»ê
+
+for (a = 0; a < f_size; a++)
+{
+    for (b = 0; b < f_size; b++)
     {
-        OG_Gaussian_col: for (yVal = 0; yVal < filter_size; yVal++)
-        {
-            float xInput = (float)xVal - (filter_size - 1) / 2;
-            float yInput = (float)yVal - (filter_size - 1) / 2;
-            float tmp = k2 * expf(-(xInput * xInput + yInput * yInput) / k1);
-            filter[xVal * filter_size + yVal] = tmp;
-            //ê¸°ë³¸ ê°€ìš°ì‹œì•ˆ ì»¤ë„ì„ í–‰ë ¬ì˜ ìœ„ì¹˜ì— ë§ê²Œ ì €ì¥í•¨.
-        }
-    }
-
-
-    Sum_row: for (a = 0; a < f_size; a++)
-    {
-        Sum_col: for (b = 0; b < f_size; b++)
-        {
-            sum += filter[(a * f_size) + b];
-            // ì „ì²´ ë°°ì—´ í•© êµ¬í•˜ê¸°
-        }
-    }
-
-    offset = 1 - sum;
-    // ì˜¤ì°¨ ì„±ë¶„ ë³´ì •ì„ ìœ„í•œ ì˜¤í”„ì…‹ ë³€ìˆ˜ ì„¤ì •
-    offset = offset / (filter_size * filter_size);
-    // ì˜¤í”„ì…‹ì„ ì „ì˜ì—­ ë™ë“±í•˜ê²Œ ë³´ì •í•˜ê¸° ìœ„í•œ ìƒìˆ˜ ì¬ê³„ì‚°
-
-    for (a = 0; a < f_size; a++)
-    {
-        for (b = 0; b < f_size; b++)
-        {
         filter[(a * f_size) + b] += offset;
-        // ê¸°ì¡´ ì„±ë¶„ì— ì˜¤í”„ì…‹ ë°˜ì˜
-        }
+        // ±âÁ¸ ¼ººĞ¿¡ ¿ÀÇÁ¼Â ¹İ¿µ
     }
+}
 
-    image_p2* img = image_reset(in->M, in->N, in->scale, in->row_size - filter_size + 1, in->col_size - filter_size + 1);
+image_p2* img = image_reset(in->M, in->N, in->scale, in->row_size - filter_size + 1, in->col_size - filter_size + 1);
 
-    conv(img->pixels, in->pixels, filter, in->row_size, in->col_size, filter_size);
+conv(img->pixels, in->pixels, filter, in->row_size, in->col_size, filter_size);
 
-    *out = *img;
-    free(filter);
-    free(img);
-    return;
+*out = *img;
+free(filter);
+free(img);
+return;
 
 }
 
@@ -461,7 +462,7 @@ void gradient(image_p2* out_dir, image_p2* out_mag, image_p2* in, int filter_typ
     float filter_y[9];
 
 
-    if (filter_type == 0) {//í”„ë¦¬ìœ— í•„í„°
+    if (filter_type == 0) {//ÇÁ¸®À­ ÇÊÅÍ
         filter_x[0] = -1;
         filter_x[1] = 0;
         filter_x[2] = 1;
@@ -483,7 +484,7 @@ void gradient(image_p2* out_dir, image_p2* out_mag, image_p2* in, int filter_typ
         filter_y[8] = 1;
     }
 
-    else if (filter_type == 1) {//ì†Œë²¨ í•„í„°
+    else if (filter_type == 1) {//¼Òº§ ÇÊÅÍ
         filter_x[0] = -1;
         filter_x[1] = 0;
         filter_x[2] = 1;
@@ -505,7 +506,7 @@ void gradient(image_p2* out_dir, image_p2* out_mag, image_p2* in, int filter_typ
         filter_y[8] = 1;
     }
 
-    else if (filter_type == 2) {//ìƒ¤ë¥´ í•„í„°
+    else if (filter_type == 2) {//»ş¸£ ÇÊÅÍ
         filter_x[0] = -3;
         filter_x[1] = 0;
         filter_x[2] = 3;
@@ -632,7 +633,7 @@ void NonMax(image_p2* out_dir, image_p2* in_dir, image_p2* in_mag, int size) {
 
             else {//135
                 for (int i = -1 * size; i <= size; i++) {
-                    if (in_dir->pixels[(col) * in_dir->row_size + (row + i)] >= in_dir->pixels[col * in_dir->row_size + row] && (i != 0)) {
+                    if (in_dir->pixels[(col)*in_dir->row_size + (row + i)] >= in_dir->pixels[col * in_dir->row_size + row] && (i != 0)) {
                         out_dir->pixels[col * in_dir->row_size + row] = 0;
                         i = size + 1;
                     }
@@ -667,15 +668,92 @@ void DoubleT(image_p2* out_dir, image_p2* in_dir, int HighT, int LowT) {
 
     out_dir->col_size = in_dir->col_size;
     out_dir->row_size = in_dir->row_size;
-    
+
     return;
 }
 
+void Hysterisis(image_p2* out_dir, image_p2* in_dir, image_p2* in_mag, int HighT, int LowT) {
+    Queue* row;//xÁÂÇ¥
+    Queue* col;//yÁÂÇ¥
+    Queue* pixels;//µ¥ÀÌÅÍ
+    
+    row = CreateQueue();
+    col = CreateQueue();
+    pixels = CreateQueue();
 
-/*
-typedef struct {
-    int row;//xì¢Œí‘œ
-    int col;//yì¢Œí‘œ
-    int pixels;
-} pixel_data;
-*/
+    //¾à¿§Áö °ËÃâ, ÃÊ±âÈ­
+    for (int col_size = 0; col_size < in_dir->col_size; col_size++) {
+        for (int row_size = 0; row_size < in_dir->row_size; row_size++) {
+            out_dir->pixels[row_size + col_size * in_dir->row_size] = in_dir->pixels[row_size + col_size * in_dir->row_size];
+
+            if ((in_dir->pixels[row_size + col_size * in_dir->row_size] < HighT) && (in_dir->pixels[row_size + col_size * in_dir->row_size] > LowT)) {
+                EnQueue(row, row_size);
+                EnQueue(col, col_size);
+                EnQueue(pixels, in_dir->pixels[col_size * in_dir->row_size + row_size]);
+            }
+            
+        }
+    }
+
+    int tmp;
+    int r;
+    int c;
+    int p;
+    int flag_in;
+    int flag;
+
+    while (1) {
+        flag = 0;
+        tmp = CountQueue(pixels);
+        if (tmp == 0) break;
+
+        for (int i = 0; i < tmp; i++) {
+            r = DeQueue(row);
+            c = DeQueue(col);
+            p = DeQueue(pixels);
+
+            flag_in = 0;
+
+            for (int col_size = c - 1; col_size <= c + 1; col_size++) {
+                for (int row_size = r - 1; row_size <= r + 1; row_size++) {
+
+                    if ((col_size != c) && (row_size != r) && (in_mag->pixels[r + c * in_dir->row_size] == in_mag->pixels[row_size + col_size * in_dir->row_size]) && (in_dir->pixels[row_size + col_size * in_dir->row_size] >= HighT)) {
+                        out_dir->pixels[r + c * in_dir->row_size] = 255;
+                        flag_in = 1;
+                        flag = 1;
+                    }
+                }
+            }
+
+            if (flag_in == 0) {
+                EnQueue(row, r);
+                EnQueue(col, c);
+                EnQueue(pixels, p);
+            }
+        }
+
+        if (flag == 1) {
+            break;
+        }
+    }
+
+    tmp = CountQueue(pixels);
+
+    for (int i = 0; i < tmp; i++) {
+        r = DeQueue(row);
+        c = DeQueue(col);
+        p = DeQueue(pixels);
+
+        out_dir->pixels[r + c * in_dir->row_size] = 0;
+    }
+
+    DestroyQueue(row);
+    DestroyQueue(col);
+    DestroyQueue(pixels);
+
+    out_dir->col_size = in_dir->col_size;
+    out_dir->row_size = in_dir->row_size;
+
+    return;
+}
+
