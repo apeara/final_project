@@ -38,7 +38,7 @@ typedef struct {
 */
 
 int main() {
-    image_p5* img = read_image_pgm_p5("ttt.pgm");
+    image_p5* img = read_image_pgm_p5("canny_image.pgm");//canny_image.pgm
     image_p2* tmp0 = pconvert_p5_to_p2(img);
 
 

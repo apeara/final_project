@@ -706,6 +706,7 @@ void Hysterisis(image_p2* out_dir, image_p2* in_dir, image_p2* in_mag, int HighT
         flag = 0;
         tmp = CountQueue(pixels);
         if (tmp == 0) break;
+        printf("%d\n",tmp);
 
         for (int i = 0; i < tmp; i++) {
             r = DeQueue(row);
@@ -717,7 +718,7 @@ void Hysterisis(image_p2* out_dir, image_p2* in_dir, image_p2* in_mag, int HighT
             for (int col_size = c - 1; col_size <= c + 1; col_size++) {
                 for (int row_size = r - 1; row_size <= r + 1; row_size++) {
 
-                    if ((col_size != c) && (row_size != r) && (in_mag->pixels[r + c * in_dir->row_size] == in_mag->pixels[row_size + col_size * in_dir->row_size]) && (in_dir->pixels[row_size + col_size * in_dir->row_size] >= HighT)) {
+                    if ((col_size != c) && (row_size != r) && (in_mag->pixels[r + c * in_dir->row_size] == in_mag->pixels[row_size + col_size * in_dir->row_size]) && (out_dir->pixels[row_size + col_size * in_dir->row_size] >= HighT)) {
                         out_dir->pixels[r + c * in_dir->row_size] = 255;
                         flag_in = 1;
                         flag = 1;
@@ -732,7 +733,7 @@ void Hysterisis(image_p2* out_dir, image_p2* in_dir, image_p2* in_mag, int HighT
             }
         }
 
-        if (flag == 1) {
+        if (flag == 0) {
             break;
         }
     }
