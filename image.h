@@ -686,7 +686,7 @@ void Hysterisis(image_p2* out_dir, image_p2* in_dir, image_p2* in_mag, int HighT
         for (int row_size = 0; row_size < in_dir->row_size; row_size++) {
             out_dir->pixels[row_size + col_size * in_dir->row_size] = in_dir->pixels[row_size + col_size * in_dir->row_size];
 
-            if ((in_dir->pixels[row_size + col_size * in_dir->row_size] < HighT) && (in_dir->pixels[row_size + col_size * in_dir->row_size] > LowT)) {
+            if ((in_dir->pixels[row_size + col_size * in_dir->row_size] <= HighT) && (in_dir->pixels[row_size + col_size * in_dir->row_size] >= LowT)) {
                 EnQueue(row, row_size);
                 EnQueue(col, col_size);
                 EnQueue(pixels, in_dir->pixels[col_size * in_dir->row_size + row_size]);
@@ -757,4 +757,3 @@ void Hysterisis(image_p2* out_dir, image_p2* in_dir, image_p2* in_mag, int HighT
 
     return;
 }
-
