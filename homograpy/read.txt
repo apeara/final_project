@@ -1,1 +1,7 @@
-123
+
+forward mapping의 보간방식이 복잡해 보여서 상대적으로 
+간단한 backward_mapping 방식으로 했습니다. 
+다만 forward mapping보다는 정밀도가 떨어진다고는 하는데
+큰차이는 안나는거 같습니다. 
+아래 주소의 알고리즘을 참고했습니다.
+https://b.mytears.org/tag/warping/
